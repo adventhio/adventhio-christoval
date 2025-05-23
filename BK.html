@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Barak Komando</title>
+  <style>
+    /* ---------- Latar & tipografi ---------- */
+    body{
+      font-family:sans-serif;
+      background:linear-gradient(270deg,#1a1a1a,#2b2b2b,#1a1a1a);
+      background-size:600% 600%;
+      animation:bgMove 30s ease infinite;
+      color:#fff;
+      padding:20px;
+    }
+    @keyframes bgMove{
+      0%  {background-position:0% 50%}
+      50% {background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    h1{animation:fadeInUp 1s forwards;opacity:0;margin-bottom:10px}
+    @keyframes fadeInUp{
+      0%  {opacity:0;transform:translateY(20px)}
+      100%{opacity:1;transform:translateY(0)}
+    }
+
+    /* ---------- Tombol ---------- */
+    button{
+      margin:5px;
+      padding:10px 15px;
+      font-size:16px;
+      background:#444;
+      color:#fff;
+      border:0;
+      border-radius:5px;
+      transition:transform .2s;
+      cursor:pointer;
+    }
+    button:hover {transform:scale(1.05);background:#666}
+    button:active{animation:pulse .3s}
+    @keyframes pulse{
+      0%  {transform:scale(1)}
+      50% {transform:scale(.95)}
+      100%{transform:scale(1)}
+    }
+
+    /* ---------- Statistik ---------- */
+    .stats{margin-bottom:20px}
+    .stats span{display:inline-block;transition:transform .3s}
+    .stats span.bump{transform:scale(1.4);color:#ffd700}
+
+    /* ---------- Pesan ---------- */
+    #pesan{
+      opacity:0;
+      transform:scale(.95);
+      transition:opacity .5s,transform .5s;
+      font-style:italic;
+      margin-top:15px;
+    }
+    #pesan.show{opacity:1;transform:scale(1.05)}
+
+    /* ---------- Stickman ---------- */
+    .barak-area{margin-top:30px;display:flex;gap:40px;align-items:flex-end;flex-wrap:wrap}
+
+    .stickman{position:relative;width:30px;height:100px}
+    .head {width:20px;height:20px;border-radius:50%;background:#fff;margin:0 auto}
+    .body {width:2px;height:40px;background:#fff;margin:0 auto}
+    .arms {width:30px;height:2px;background:#fff;position:absolute;top:30px;left:0}
+    .legs {width:2px;height:30px;background:#fff;position:absolute;bottom:0;left:14px}
+
+    /* Latihan anim */
+    .pasukan-latihan{animation:latihan .4s ease-in-out 3}
+    @keyframes latihan{
+      0%,100%{transform:translateY(0)}
+      50%     {transform:translateY(-10px)}
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎖️ Barak Kang Dedi </h1>
+
+  <!-- Statistik -->
+  <div class="stats">
+    <p>Disiplin:  <span id="disiplin">50</span></p>
+    <p>Kebersihan: <span id="kebersihan">50</span></p>
+    <p>Moral:     <span id="moral">50</span></p>
+  </div>
+
+  <!-- Tombol aksi -->
+  <button onclick="aksi('latihan')">Latihan Fisik</button>
+  <button onclick="aksi('inspeksi')">Inspeksi Barak</button>
+  <button onclick="aksi('cuti')">Cuti Pasukan</button>
+  <button onclick="aksi('upgrade')">Upgrade Fasilitas</button>
+
+  <!-- Pesan -->
+  <p id="pesan"></p>
+
+  <!-- Area Stickman -->
+  <div class="barak-area">
+    <!-- Komandan -->
+    <div class="stickman">
+      <div class="head"></div><div class="arms"></div><div class="body"></div><div class="legs"></div>
+    </div>
+    <!-- Kontainer pasukan; diisi via JS -->
+    <div id="pasukan"></div>
+  </div>
+
+  <!-- Efek suara -->
+  <audio id="suara-latihan"  src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_90e8dfb9c2.mp3?filename=running-footsteps-1-6180.mp3"></audio>
+  <audio id="suara-inspeksi" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_131ba733ff.mp3?filename=metal-hit-7057.mp3"></audio>
+  <audio id="suara-cuti"     src="https://cdn.pixabay.com/download/audio/2022/01/25/audio_865c87890b.mp3?filename=notification-1-126505.mp3"></audio>
+  <audio id="suara-upgrade"  src="https://cdn.pixabay.com/download/audio/2022/03/01/audio_2264cbce8a.mp3?filename=level-up-191739.mp3"></audio>
+
+<script>
+/* ---------- Data dasar ---------- */
+let disiplin = 50,
+    kebersihan = 50,
+    moral = 50;
+
+/* ---------- Utilitas UI ---------- */
+function updateStat(id, val){
+  const el = document.getElementById(id);
+  el.innerText = val;
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 300);
+}
+function updateUI(){
+  updateStat('disiplin',   disiplin);
+  updateStat('kebersihan', kebersihan);
+  updateStat('moral',      moral);
+}
+function playSound(id){
+  const a = document.getElementById(id);
+  if(a){ a.currentTime = 0; a.play(); }
+}
+function showPesan(text){
+  const p = document.getElementById('pesan');
+  p.innerText = text;
+  p.classList.remove('show'); // reset
+  void p.offsetWidth;         // reflow
+  p.classList.add('show');
+}
+function animatePasukan(){
+  document.querySelectorAll('.pasukan').forEach(p => {
+    p.classList.remove('pasukan-latihan'); void p.offsetWidth; // reset
+    p.classList.add('pasukan-latihan');
+  });
+}
+
+/* ---------- Logika Aksi ---------- */
+function aksi(type){
+  switch(type){
+    case 'latihan':
+      disiplin += 5; moral -= 2;
+      animatePasukan();     playSound('suara-latihan');
+      showPesan('Pasukan berlatih keras! Disiplin naik.');
+      break;
+    case 'inspeksi':
+      kebersihan += 5; moral -= 1;
+      playSound('suara-inspeksi');
+      showPesan('Barak dibersihkan. Kebersihan naik.');
+      break;
+    case 'cuti':
+      moral += 10; disiplin -= 3;
+      playSound('suara-cuti');
+      showPesan('Pasukan cuti. Moral naik.');
+      break;
+    case 'upgrade':
+      disiplin += 2; kebersihan += 2; moral += 2;
+      playSound('suara-upgrade');
+      showPesan('Fasilitas ditingkatkan!');
+      break;
+  }
+  // clamp ke 0-100
+  disiplin   = Math.max(0, Math.min(100, disiplin));
+  kebersihan = Math.max(0, Math.min(100, kebersihan));
+  moral      = Math.max(0, Math.min(100, moral));
+  updateUI();
+}
+
+/* ---------- Pembuatan pasukan ---------- */
+function buatPasukan(n){
+  const cont = document.getElementById('pasukan');
+  for(let i=0; i<n; i++){
+    const sm = document.createElement('div');
+    sm.className = 'stickman pasukan';
+    sm.innerHTML = `
+      <div class="head"></div>
+      <div class="arms"></div>
+      <div class="body"></div>
+      <div class="legs"></div>`;
+    cont.appendChild(sm);
+  }
+}
+
+/* ---------- Inisialisasi ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  buatPasukan(4);   // ← ubah jumlah pasukan di sini
+  updateUI();
+});
+</script>
+</body>
+</html>
